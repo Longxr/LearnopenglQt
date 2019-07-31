@@ -13,13 +13,14 @@ static const char *fragmentShaderSource =
         "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
         "}\n\0";
 
-ShaderProgramWidget::ShaderProgramWidget(QWidget *parent) : QOpenGLWidget (parent)
+ShaderProgramWidget::ShaderProgramWidget(QWidget *parent) : QOpenGLWidget (parent),
+    vbo(QOpenGLBuffer::VertexBuffer)
 {
 
 }
 
 ShaderProgramWidget::~ShaderProgramWidget(){
-
+    vbo.destroy();
 }
 
 void ShaderProgramWidget::initializeGL(){
@@ -41,26 +42,30 @@ void ShaderProgramWidget::initializeGL(){
 
     shaderProgram.addShader(&vertexShader);
     shaderProgram.addShader(&fragmentShader);
-
-//    //VAO，VBO数据部分
-//    vertices.append(QVector3D(-0.5, -0.5, 0.0));
-//    vertices.append(QVector3D(0.5, -0.5, 0.0));
-//    vertices.append(QVector3D(0.0, 0.5, 0.0));
-//    shaderProgram.setAttributeArray(0, vertices.data());
-
-//    shaderProgram.bindAttributeLocation("aPos", 0);
-//    shaderProgram.enableAttributeArray(0);
-
     success = shaderProgram.link();
-    if(!success){
+    if(!success) {
         qDebug() << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << endl;
     }
-    shaderProgram.bind();   // 等于glUseProgram(shaderProgram)
 
     //VAO，VBO数据部分
-    vertices.append(QVector3D(-0.5, -0.5, 0.0));
-    vertices.append(QVector3D(0.5, -0.5, 0.0));
-    vertices.append(QVector3D(0.0, 0.5, 0.0));
+    GLfloat vertices[] = {
+        -0.5f, -0.5f, 0.0f, // left
+         0.5f, -0.5f, 0.0f, // right
+         0.0f,  0.5f, 0.0f  // top
+    };
+
+    vbo.create(); //创建buffer
+    vbo.bind();
+    vbo.allocate(vertices, sizeof(vertices));
+//    vbo.allocate(sizeof(vertices));
+//    vbo.write(0, vertices, sizeof(vertices));
+
+    int attr = -1;
+    attr = shaderProgram.attributeLocation("aPos");
+    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+    shaderProgram.enableAttributeArray(attr);
+
+    vbo.release();
 }
 
 void ShaderProgramWidget::resizeGL(int w, int h){
@@ -71,12 +76,9 @@ void ShaderProgramWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-
-    shaderProgram.bindAttributeLocation("aPos", 0);// 等于glUseProgram(shaderProgram)
-    shaderProgram.enableAttributeArray(0);
-    shaderProgram.setAttributeArray(0, vertices.data());
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-
-//    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-
+    shaderProgram.bind();
+    vbo.bind();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    vbo.release();
+    shaderProgram.release();
 }

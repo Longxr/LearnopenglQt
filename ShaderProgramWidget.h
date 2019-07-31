@@ -9,19 +9,22 @@
 #include <QOpenGLShaderProgram>
 #include <QDebug>
 #include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
 
 class ShaderProgramWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
 public:
     ShaderProgramWidget(QWidget *parent = nullptr);
-    ~ShaderProgramWidget();
+    ~ShaderProgramWidget() Q_DECL_OVERRIDE;
 protected:
-    virtual void initializeGL();
-    virtual void resizeGL(int w, int h);
-    virtual void paintGL();
+    virtual void initializeGL() Q_DECL_OVERRIDE;
+    virtual void resizeGL(int w, int h) Q_DECL_OVERRIDE;
+    virtual void paintGL() Q_DECL_OVERRIDE;
 private:
     QOpenGLShaderProgram shaderProgram;
-    QVector<QVector3D> vertices;
+    QOpenGLVertexArrayObject vao;
+    QOpenGLBuffer vbo;
 };
 
 #endif // SHADERPROGRAMWIDGET_H
