@@ -6,11 +6,11 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
 //    MainWindow w;
-//    w.show();
 //    ShaderProgramWidget w;
-//    w.show();
     ExtraFunctionsWidget w;
+
     w.show();
 
     return a.exec();

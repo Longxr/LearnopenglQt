@@ -3,12 +3,15 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
+#include <QOpenGLFunctions_3_3_Core>
 
-class ExtraFunctionsWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
+class ExtraFunctionsWidget : public QOpenGLWidget
+                           , protected /*QOpenGLExtraFunctions*/QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
 public:
     explicit ExtraFunctionsWidget(QWidget *parent = nullptr);
+    ~ExtraFunctionsWidget();
 
 protected:
     virtual void initializeGL();
