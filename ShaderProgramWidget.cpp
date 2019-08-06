@@ -37,12 +37,9 @@ void ShaderProgramWidget::initializeGL(){
 
     //VAO，VBO数据部分
     GLfloat vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f,
-//        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom Right
-//        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom Left
-//        0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top
+        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom Right
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom Left
+        0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top
     };
 
     vbo.create(); //创建buffer
@@ -53,7 +50,11 @@ void ShaderProgramWidget::initializeGL(){
 
     int attr = -1;
     attr = shaderProgram.attributeLocation("aPos");
-    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 6);
+    shaderProgram.enableAttributeArray(attr);
+
+    attr = shaderProgram.attributeLocation("aColor");
+    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, sizeof(GLfloat) * 3, 3, sizeof(GLfloat) * 6);
     shaderProgram.enableAttributeArray(attr);
 
     vbo.release();
