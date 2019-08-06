@@ -7,7 +7,6 @@
 #include <QOpenGLWidget>
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
-#include <QDebug>
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
@@ -27,6 +26,9 @@ private:
     QOpenGLShaderProgram shaderProgram;
     QOpenGLBuffer vbo, ebo;
     QOpenGLVertexArrayObject vao;
+
+    QTimer* m_pTimer = nullptr;
+    float m_uniformValue = 0.0f;
 };
 
 #endif // QTFUNCTIONWIDGET_H
