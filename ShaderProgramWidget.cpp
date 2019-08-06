@@ -1,17 +1,6 @@
 #include "ShaderProgramWidget.h"
 
-static const char *vertexShaderSource =
-        "#version 330 core\n"
-        "layout(location = 0) in vec3 aPos;\n"
-        "void main(){\n"
-        "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n"
-        "}\n\0";
-static const char *fragmentShaderSource =
-        "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main(){\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\n\0";
+#include <QFile>
 
 ShaderProgramWidget::ShaderProgramWidget(QWidget *parent) : QOpenGLWidget (parent),
     vbo(QOpenGLBuffer::VertexBuffer)
@@ -24,34 +13,36 @@ ShaderProgramWidget::~ShaderProgramWidget(){
 }
 
 void ShaderProgramWidget::initializeGL(){
-    this->initializeOpenGLFunctions();//这个init()函数至关重要，如果继承QOpenGlFunctions,必须使用这个初始化函数
+    this->initializeOpenGLFunctions();
     //着色器部分
-    QOpenGLShader vertexShader(QOpenGLShader::Vertex);
-    bool success = vertexShader.compileSourceCode(vertexShaderSource);
-    if(!success){
-        qDebug() << "ERROR::SHADER::VERTEX::COMPILATION_FAILED" << endl;
+    QOpenGLShader* pVertShader = CreateShader("triangle.vert", QOpenGLShader::Vertex);
+    QOpenGLShader* pFragShader = CreateShader("triangle.frag", QOpenGLShader::Fragment);
+
+    if (pVertShader) {
+        shaderProgram.addShader(pVertShader);
+    } else {
         return;
     }
 
-    QOpenGLShader fragmentShader(QOpenGLShader::Fragment);
-    success = fragmentShader.compileSourceCode(fragmentShaderSource);
-    if(!success){
-        qDebug() << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED" << endl;
+    if (pFragShader) {
+        shaderProgram.addShader(pFragShader);
+    } else {
         return;
     }
 
-    shaderProgram.addShader(&vertexShader);
-    shaderProgram.addShader(&fragmentShader);
-    success = shaderProgram.link();
+    bool success = shaderProgram.link();
     if(!success) {
-        qDebug() << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << endl;
+        qDebug() << "ERROR::SHADER::PROGRAM::LINKING_FAILED";
     }
 
     //VAO，VBO数据部分
     GLfloat vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left
-         0.5f, -0.5f, 0.0f, // right
-         0.0f,  0.5f, 0.0f  // top
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f,
+//        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom Right
+//        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom Left
+//        0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top
     };
 
     vbo.create(); //创建buffer
@@ -81,4 +72,28 @@ void ShaderProgramWidget::paintGL(){
     glDrawArrays(GL_TRIANGLES, 0, 3);
     vbo.release();
     shaderProgram.release();
+}
+
+QOpenGLShader *ShaderProgramWidget::CreateShader(const QString &fileName, QOpenGLShader::ShaderTypeBit type)
+{
+    QFile file(QStringLiteral(":/") + fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning("Can not load shader %s: %s", file.fileName().toUtf8().constData(), file.errorString().toUtf8().constData());
+        return nullptr;
+    }
+    QByteArray src = file.readAll();
+    file.close();
+
+    QOpenGLShader *pShader = new QOpenGLShader(type, this);
+
+    bool success = pShader->compileSourceCode(src.constData());
+    if(!success){
+        qDebug() << "CreateShader compileSourceCode failed!";
+        qDebug() << pShader->log();
+
+        delete pShader;
+        pShader = nullptr;
+    }
+
+    return pShader;
 }
