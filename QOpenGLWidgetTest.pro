@@ -28,14 +28,14 @@ SOURCES += \
         main.cpp \
         MainWindow.cpp \
     GlDrawWidget.cpp \
-    ExtraFunctionsWidget.cpp \
-    ShaderProgramWidget.cpp
+    CoreFunctionWidget.cpp \
+    QtFunctionWidget.cpp
 
 HEADERS += \
         MainWindow.h \
     GlDrawWidget.h \
-    ExtraFunctionsWidget.h \
-    ShaderProgramWidget.h
+    CoreFunctionWidget.h \
+    QtFunctionWidget.h
 
 FORMS += \
         MainWindow.ui

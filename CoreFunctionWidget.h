@@ -1,5 +1,5 @@
-#ifndef EXTRAFUNCTIONSWIDGET_H
-#define EXTRAFUNCTIONSWIDGET_H
+#ifndef COREFUNCTIONWIDGET_H
+#define COREFUNCTIONWIDGET_H
 
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
@@ -7,13 +7,13 @@
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
 
-class ExtraFunctionsWidget : public QOpenGLWidget
+class CoreFunctionWidget : public QOpenGLWidget
                            , protected /*QOpenGLExtraFunctions*/QOpenGLFunctions_3_3_Core
 {
     Q_OBJECT
 public:
-    explicit ExtraFunctionsWidget(QWidget *parent = nullptr);
-    ~ExtraFunctionsWidget();
+    explicit CoreFunctionWidget(QWidget *parent = nullptr);
+    ~CoreFunctionWidget();
 
 protected:
     virtual void initializeGL();
@@ -21,9 +21,7 @@ protected:
     virtual void paintGL();
 
 private:
-    QOpenGLShader *CreateShader(const QString& fileName, QOpenGLShader::ShaderTypeBit type);
-
     QOpenGLShaderProgram shaderProgram;
 };
 
-#endif // EXTRAFUNCTIONSWIDGET_H
+#endif // COREFUNCTIONWIDGET_H

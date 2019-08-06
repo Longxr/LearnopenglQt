@@ -1,17 +1,21 @@
 #include <QApplication>
 #include "MainWindow.h"
-#include "ShaderProgramWidget.h"
-#include "ExtraFunctionsWidget.h"
+#include "QtFunctionWidget.h"
+#include "CoreFunctionWidget.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
 //    MainWindow w;
-    ShaderProgramWidget w;
-//    ExtraFunctionsWidget w;
+    QtFunctionWidget w1;
+    CoreFunctionWidget w2;
 
-    w.show();
+    w1.setWindowTitle(QObject::tr("QtFunction"));
+    w2.setWindowTitle(QObject::tr("CoreFunction"));
+
+    w1.show();
+    w2.show();
 
     return a.exec();
 }

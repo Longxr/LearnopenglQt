@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>triangle.frag</file>
         <file>triangle.vert</file>
+        <file>colortriangle.frag</file>
+        <file>colortriangle.vert</file>
     </qresource>
 </RCC>
