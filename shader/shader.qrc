@@ -4,5 +4,7 @@
         <file>triangle.vert</file>
         <file>colortriangle.frag</file>
         <file>colortriangle.vert</file>
+        <file>textures.frag</file>
+        <file>textures.vert</file>
     </qresource>
 </RCC>

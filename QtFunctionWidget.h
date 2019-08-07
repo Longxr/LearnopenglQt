@@ -10,6 +10,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include <QOpenGLTexture>
 
 class QtFunctionWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -26,9 +27,11 @@ private:
     QOpenGLShaderProgram shaderProgram;
     QOpenGLBuffer vbo, ebo;
     QOpenGLVertexArrayObject vao;
+    QOpenGLTexture *texture1 = nullptr;
+    QOpenGLTexture *texture2 = nullptr;
 
-    QTimer* m_pTimer = nullptr;
-    float m_uniformValue = 0.0f;
+//    QTimer* m_pTimer = nullptr;
+//    float m_uniformValue = 0.0f;
 };
 
 #endif // QTFUNCTIONWIDGET_H
