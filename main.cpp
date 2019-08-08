@@ -1,5 +1,4 @@
 #include <QApplication>
-#include "MainWindow.h"
 #include "QtFunctionWidget.h"
 #include "CoreFunctionWidget.h"
 
@@ -7,7 +6,6 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-//    MainWindow w;
     QtFunctionWidget w1;
     CoreFunctionWidget w2;
 

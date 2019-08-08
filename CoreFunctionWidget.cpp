@@ -6,20 +6,12 @@ static GLuint VBO, VAO, EBO, texture1, texture2;
 
 CoreFunctionWidget::CoreFunctionWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
-//    m_pTimer = new QTimer(this);
-//    m_pTimer->setInterval(200);
-
-//    connect(m_pTimer, &QTimer::timeout, this, [=]{
-//        m_uniformValue += 0.1f;
-
-//        if (m_uniformValue > 1.5f) {
-//            m_uniformValue = -1.5f;
-//        }
-
-//        update();
-//    });
-
-//    m_pTimer->start();
+    m_pTimer = new QTimer(this);
+    connect(m_pTimer, &QTimer::timeout, this, [=]{
+        m_nTimeValue += 5;
+        update();
+    });
+    m_pTimer->start(50);
 }
 
 CoreFunctionWidget::~CoreFunctionWidget()
@@ -125,15 +117,6 @@ void CoreFunctionWidget::initializeGL(){
     glUniform1i(shaderProgram.uniformLocation("texture2"), 1);
     shaderProgram.release();
 
-//    glBindBuffer(GL_ARRAY_BUFFER, 0);//取消VBO的绑定
-
-//    remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-//    You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-//    VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-//    glBindVertexArray(0);   //取消VAO绑定
-
     //线框模式，QOpenGLExtraFunctions没这函数, 3_3_Core有
 //    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
@@ -146,17 +129,24 @@ void CoreFunctionWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shaderProgram.bind();
-    {
-        // bind textures on corresponding texture units
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
 
-        // render container
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    }
+    // create transformations
+    QMatrix4x4 transform;
+    transform.translate(QVector3D(0.5f, -0.5f, 0.0f));
+    transform.rotate(m_nTimeValue, QVector3D(0.0f, 0.0f, 1.0f));
+
+    // get matrix's uniform location and set matrix
+    shaderProgram.bind();
+    int transformLoc = shaderProgram.uniformLocation("transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
+
+    // render container
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     shaderProgram.release();
 }

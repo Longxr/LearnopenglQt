@@ -6,20 +6,12 @@ QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent),
     vbo(QOpenGLBuffer::VertexBuffer),
     ebo(QOpenGLBuffer::IndexBuffer)
 {
-//    m_pTimer = new QTimer(this);
-//    m_pTimer->setInterval(200);
-
-//    connect(m_pTimer, &QTimer::timeout, this, [=]{
-//        m_uniformValue += 0.1f;
-
-//        if (m_uniformValue > 1.5f) {
-//            m_uniformValue = -1.5f;
-//        }
-
-//        update();
-//    });
-
-//    m_pTimer->start();
+    m_pTimer = new QTimer(this);
+    connect(m_pTimer, &QTimer::timeout, this, [=]{
+        m_nTimeValue += 5;
+        update();
+    });
+    m_pTimer->start(50);
 }
 
 QtFunctionWidget::~QtFunctionWidget(){
@@ -138,21 +130,26 @@ void QtFunctionWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shaderProgram.bind();
-    {
-        glActiveTexture(GL_TEXTURE0);
-        texture1->bind();
-//        glBindTexture(GL_TEXTURE_2D, texture1->textureId());
-        glActiveTexture(GL_TEXTURE1);
-        texture2->bind();
-//        glBindTexture(GL_TEXTURE_2D, texture2->textureId());
+    // bind textures on corresponding texture units
+    glActiveTexture(GL_TEXTURE0);
+    texture1->bind();
+    glActiveTexture(GL_TEXTURE1);
+    texture2->bind();
 
-        // render container
+    // create transformations
+    QMatrix4x4 transform;
+    transform.translate(QVector3D(0.5f, -0.5f, 0.0f));
+    transform.rotate(m_nTimeValue, QVector3D(0.0f, 0.0f, 1.0f));
+
+    shaderProgram.bind();
+    shaderProgram.setUniformValue("transform", transform);
+
+    {// render container
         QOpenGLVertexArrayObject::Binder vaoBind(&vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-        texture1->release();
-        texture2->release();
     }
+
+    texture1->release();
+    texture2->release();
     shaderProgram.release();
 }

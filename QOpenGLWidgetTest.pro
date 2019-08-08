@@ -26,19 +26,14 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        MainWindow.cpp \
-    GlDrawWidget.cpp \
     CoreFunctionWidget.cpp \
     QtFunctionWidget.cpp
 
 HEADERS += \
-        MainWindow.h \
-    GlDrawWidget.h \
     CoreFunctionWidget.h \
     QtFunctionWidget.h
 
-FORMS += \
-        MainWindow.ui
+FORMS +=
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

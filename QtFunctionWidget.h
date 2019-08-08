@@ -30,8 +30,8 @@ private:
     QOpenGLTexture *texture1 = nullptr;
     QOpenGLTexture *texture2 = nullptr;
 
-//    QTimer* m_pTimer = nullptr;
-//    float m_uniformValue = 0.0f;
+    QTimer* m_pTimer = nullptr;
+    int     m_nTimeValue = 0;
 };
 
 #endif // QTFUNCTIONWIDGET_H

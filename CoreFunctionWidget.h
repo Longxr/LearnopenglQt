@@ -23,8 +23,8 @@ protected:
 private:
     QOpenGLShaderProgram shaderProgram;
 
-//    QTimer* m_pTimer = nullptr;
-//    float m_uniformValue = 0.0f;
+    QTimer* m_pTimer = nullptr;
+    int     m_nTimeValue = 0;
 };
 
 #endif // COREFUNCTIONWIDGET_H
