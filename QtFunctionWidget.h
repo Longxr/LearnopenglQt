@@ -25,7 +25,7 @@ protected:
 
 private:
     QOpenGLShaderProgram shaderProgram;
-    QOpenGLBuffer vbo, ebo;
+    QOpenGLBuffer vbo;
     QOpenGLVertexArrayObject vao;
     QOpenGLTexture *texture1 = nullptr;
     QOpenGLTexture *texture2 = nullptr;

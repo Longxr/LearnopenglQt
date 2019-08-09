@@ -3,22 +3,20 @@
 #include <QTimer>
 
 QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent),
-    vbo(QOpenGLBuffer::VertexBuffer),
-    ebo(QOpenGLBuffer::IndexBuffer)
+    vbo(QOpenGLBuffer::VertexBuffer)
 {
     m_pTimer = new QTimer(this);
     connect(m_pTimer, &QTimer::timeout, this, [=]{
-        m_nTimeValue += 5;
+        m_nTimeValue += 1;
         update();
     });
-    m_pTimer->start(50);
+    m_pTimer->start(40);
 }
 
 QtFunctionWidget::~QtFunctionWidget(){
     makeCurrent();
 
     vbo.destroy();
-    ebo.destroy();
     vao.destroy();
 
     delete texture1;
@@ -47,17 +45,53 @@ void QtFunctionWidget::initializeGL(){
         qDebug() << "shaderProgram link failed!" << shaderProgram.log();
     }
 
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
+
     //VAO，VBO data
     float vertices[] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
-    };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
     QOpenGLVertexArrayObject::Binder vaoBind(&vao);
@@ -66,69 +100,78 @@ void QtFunctionWidget::initializeGL(){
     vbo.bind();
     vbo.allocate(vertices, sizeof(vertices));
 
-    ebo.create();
-    ebo.bind();
-    ebo.allocate(indices, sizeof(indices));
-
     // position attribute
     int attr = -1;
     attr = shaderProgram.attributeLocation("aPos");
-    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 8);
-    shaderProgram.enableAttributeArray(attr);
-    // color attribute
-    attr = shaderProgram.attributeLocation("aColor");
-    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, sizeof(GLfloat) * 3, 3, sizeof(GLfloat) * 8);
+    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 5);
     shaderProgram.enableAttributeArray(attr);
     // texture coord attribute
     attr = shaderProgram.attributeLocation("aTexCoord");
-    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, sizeof(GLfloat) * 6, 2, sizeof(GLfloat) * 8);
+    shaderProgram.setAttributeBuffer(attr, GL_FLOAT, sizeof(GLfloat) * 3, 2, sizeof(GLfloat) * 5);
     shaderProgram.enableAttributeArray(attr);
 
     // texture 1
     // ---------
-    texture1 = new QOpenGLTexture(QImage(":/container.jpg"), QOpenGLTexture::GenerateMipMaps); //直接生成绑定一个2d纹理, 并生成多级纹理MipMaps
+    texture1 = new QOpenGLTexture(QImage(":/container.jpg"), QOpenGLTexture::GenerateMipMaps);
     if(!texture1->isCreated()){
         qDebug() << "Failed to load texture";
     }
     // set the texture wrapping parameters
-    texture1->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);// 等于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    texture1->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    texture1->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
+    texture1->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);
     // set texture filtering parameters
-    texture1->setMinificationFilter(QOpenGLTexture::Linear);   //等价于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    texture1->setMinificationFilter(QOpenGLTexture::Linear);
     texture1->setMagnificationFilter(QOpenGLTexture::Linear);
 
     // texture 2
     // ---------
-    texture2 = new QOpenGLTexture(QImage(":/awesomeface.png").mirrored(true, true), QOpenGLTexture::GenerateMipMaps); //直接生成绑定一个2d纹理, 并生成多级纹理MipMaps
+    texture2 = new QOpenGLTexture(QImage(":/awesomeface.png").mirrored(true, true), QOpenGLTexture::GenerateMipMaps);
     if(!texture2->isCreated()){
         qDebug() << "Failed to load texture";
     }
     // set the texture wrapping parameters
-    texture2->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);// 等于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    texture2->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    texture2->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
+    texture2->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);
     // set texture filtering parameters
-    texture2->setMinificationFilter(QOpenGLTexture::Linear);   //等价于glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    texture2->setMinificationFilter(QOpenGLTexture::Linear);
     texture1->setMagnificationFilter(QOpenGLTexture::Linear);
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     shaderProgram.bind();   // don't forget to activate/use the shader before setting uniforms!
     shaderProgram.setUniformValue("texture1", 0);
     shaderProgram.setUniformValue("texture2", 1);
+    // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+    QMatrix4x4 view;
+    view.translate(QVector3D(0.0f, 0.0f, -3.0f));
+    shaderProgram.setUniformValue("view", view);
+    QMatrix4x4 projection;
+    projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
+    shaderProgram.setUniformValue("projection", projection);
     shaderProgram.release();
 
     vbo.release();
-//    remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-//    ebo.release();
-
 }
 
 void QtFunctionWidget::resizeGL(int w, int h){
     glViewport(0, 0, w, h);
 }
 
+static QVector3D cubePositions[] = {
+  QVector3D( 0.0f,  0.0f,  0.0f),
+  QVector3D( 2.0f,  5.0f, -15.0f),
+  QVector3D(-1.5f, -2.2f, -2.5f),
+  QVector3D(-3.8f, -2.0f, -12.3f),
+  QVector3D( 2.4f, -0.4f, -3.5f),
+  QVector3D(-1.7f,  3.0f, -7.5f),
+  QVector3D( 1.3f, -2.0f, -2.5f),
+  QVector3D( 1.5f,  2.0f, -2.5f),
+  QVector3D( 1.5f,  0.2f, -1.5f),
+  QVector3D(-1.3f,  1.0f, -1.5f)
+};
+
 void QtFunctionWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
@@ -136,17 +179,20 @@ void QtFunctionWidget::paintGL(){
     glActiveTexture(GL_TEXTURE1);
     texture2->bind();
 
-    // create transformations
-    QMatrix4x4 transform;
-    transform.translate(QVector3D(0.5f, -0.5f, 0.0f));
-    transform.rotate(m_nTimeValue, QVector3D(0.0f, 0.0f, 1.0f));
-
     shaderProgram.bind();
-    shaderProgram.setUniformValue("transform", transform);
 
-    {// render container
+    {// render box
         QOpenGLVertexArrayObject::Binder vaoBind(&vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+        for (unsigned int i = 0; i < 10; i++) {
+           // calculate the model matrix for each object and pass it to shader before drawing
+           QMatrix4x4 model;
+           model.translate(cubePositions[i]);
+           float angle = (i + 1.0f) * m_nTimeValue;
+           model.rotate(angle, QVector3D(1.0f, 0.3f, 0.5f));
+           shaderProgram.setUniformValue("model", model);
+           glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
     }
 
     texture1->release();

@@ -2,23 +2,22 @@
 #include <QDebug>
 #include <QTimer>
 
-static GLuint VBO, VAO, EBO, texture1, texture2;
+static GLuint VBO, VAO, texture1, texture2;
 
 CoreFunctionWidget::CoreFunctionWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     m_pTimer = new QTimer(this);
     connect(m_pTimer, &QTimer::timeout, this, [=]{
-        m_nTimeValue += 5;
+        m_nTimeValue += 1;
         update();
     });
-    m_pTimer->start(50);
+    m_pTimer->start(40);
 }
 
 CoreFunctionWidget::~CoreFunctionWidget()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 }
 
 void CoreFunctionWidget::initializeGL(){
@@ -41,40 +40,69 @@ void CoreFunctionWidget::initializeGL(){
         qDebug() << "shaderProgram link failed!" << shaderProgram.log();
     }
 
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
+
     //VAO，VBO data
     float vertices[] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
-    };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,  // first Triangle
-        1, 2, 3   // second Triangle
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
     // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // texture 1
     // ---------
@@ -111,23 +139,41 @@ void CoreFunctionWidget::initializeGL(){
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     shaderProgram.bind();   // don't forget to activate/use the shader before setting uniforms!
-    glUniform1i(shaderProgram.uniformLocation("texture1"), 0);
-    glUniform1i(shaderProgram.uniformLocation("texture2"), 1);
+    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+    shaderProgram.setUniformValue("texture1", 0);
+    shaderProgram.setUniformValue("texture2", 1);
+    // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+    QMatrix4x4 view;
+    view.translate(QVector3D(0.0f, 0.0f, -3.0f));
+    shaderProgram.setUniformValue("view", view);
+    QMatrix4x4 projection;
+    projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
+    shaderProgram.setUniformValue("projection", projection);
     shaderProgram.release();
-
-    //线框模式，QOpenGLExtraFunctions没这函数, 3_3_Core有
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void CoreFunctionWidget::resizeGL(int w, int h){
     glViewport(0, 0, w, h);
 }
 
+
+static QVector3D cubePositions[] = {
+  QVector3D( 0.0f,  0.0f,  0.0f),
+  QVector3D( 2.0f,  5.0f, -15.0f),
+  QVector3D(-1.5f, -2.2f, -2.5f),
+  QVector3D(-3.8f, -2.0f, -12.3f),
+  QVector3D( 2.4f, -0.4f, -3.5f),
+  QVector3D(-1.7f,  3.0f, -7.5f),
+  QVector3D( 1.3f, -2.0f, -2.5f),
+  QVector3D( 1.5f,  2.0f, -2.5f),
+  QVector3D( 1.5f,  0.2f, -1.5f),
+  QVector3D(-1.3f,  1.0f, -1.5f)
+};
+
 void CoreFunctionWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
@@ -135,18 +181,18 @@ void CoreFunctionWidget::paintGL(){
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
-    // create transformations
-    QMatrix4x4 transform;
-    transform.translate(QVector3D(0.5f, -0.5f, 0.0f));
-    transform.rotate(m_nTimeValue, QVector3D(0.0f, 0.0f, 1.0f));
-
-    // get matrix's uniform location and set matrix
     shaderProgram.bind();
-    int transformLoc = shaderProgram.uniformLocation("transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform.data());
-
-    // render container
+    // render boxes
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    for (unsigned int i = 0; i < 10; i++) {
+       // calculate the model matrix for each object and pass it to shader before drawing
+       QMatrix4x4 model;
+       model.translate(cubePositions[i]);
+       float angle = (i + 1.0f) * m_nTimeValue;
+       model.rotate(angle, QVector3D(1.0f, 0.3f, 0.5f));
+       shaderProgram.setUniformValue("model", model);
+       glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
     shaderProgram.release();
 }
