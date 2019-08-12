@@ -1,17 +1,34 @@
 #include "CoreFunctionWidget.h"
 #include <QDebug>
 #include <QTimer>
+#include <QKeyEvent>
+#include <QDateTime>
 
-static GLuint VBO, VAO, texture1, texture2;
+static QVector3D cubePositions[] = {
+  QVector3D( 0.0f,  0.0f,  0.0f),
+  QVector3D( 2.0f,  5.0f, -15.0f),
+  QVector3D(-1.5f, -2.2f, -2.5f),
+  QVector3D(-3.8f, -2.0f, -12.3f),
+  QVector3D( 2.4f, -0.4f, -3.5f),
+  QVector3D(-1.7f,  3.0f, -7.5f),
+  QVector3D( 1.3f, -2.0f, -2.5f),
+  QVector3D( 1.5f,  2.0f, -2.5f),
+  QVector3D( 1.5f,  0.2f, -1.5f),
+  QVector3D(-1.3f,  1.0f, -1.5f)
+};
 
 CoreFunctionWidget::CoreFunctionWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
+    camera = std::make_unique<Camera>(QVector3D(5.0f, 0.0f, 10.0f));
+    m_bLeftPressed = false;
+
     m_pTimer = new QTimer(this);
     connect(m_pTimer, &QTimer::timeout, this, [=]{
         m_nTimeValue += 1;
         update();
     });
-    m_pTimer->start(40);
+    m_pTimer->start(40);//25 fps
+
 }
 
 CoreFunctionWidget::~CoreFunctionWidget()
@@ -39,10 +56,6 @@ void CoreFunctionWidget::initializeGL(){
     if(!success) {
         qDebug() << "shaderProgram link failed!" << shaderProgram.log();
     }
-
-    // configure global opengl state
-    // -----------------------------
-    glEnable(GL_DEPTH_TEST);
 
     //VAO，VBO data
     float vertices[] = {
@@ -143,37 +156,21 @@ void CoreFunctionWidget::initializeGL(){
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     shaderProgram.setUniformValue("texture1", 0);
     shaderProgram.setUniformValue("texture2", 1);
-    // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-    QMatrix4x4 view;
-    view.translate(QVector3D(0.0f, 0.0f, -3.0f));
-    shaderProgram.setUniformValue("view", view);
-    QMatrix4x4 projection;
-    projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
-    shaderProgram.setUniformValue("projection", projection);
-    shaderProgram.release();
+
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
 }
 
 void CoreFunctionWidget::resizeGL(int w, int h){
     glViewport(0, 0, w, h);
 }
 
-
-static QVector3D cubePositions[] = {
-  QVector3D( 0.0f,  0.0f,  0.0f),
-  QVector3D( 2.0f,  5.0f, -15.0f),
-  QVector3D(-1.5f, -2.2f, -2.5f),
-  QVector3D(-3.8f, -2.0f, -12.3f),
-  QVector3D( 2.4f, -0.4f, -3.5f),
-  QVector3D(-1.7f,  3.0f, -7.5f),
-  QVector3D( 1.3f, -2.0f, -2.5f),
-  QVector3D( 1.5f,  2.0f, -2.5f),
-  QVector3D( 1.5f,  0.2f, -1.5f),
-  QVector3D(-1.3f,  1.0f, -1.5f)
-};
-
 void CoreFunctionWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
+
+    camera->processInput(1.0f);
 
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
@@ -182,6 +179,14 @@ void CoreFunctionWidget::paintGL(){
     glBindTexture(GL_TEXTURE_2D, texture2);
 
     shaderProgram.bind();
+
+    QMatrix4x4 projection;
+    projection.perspective(camera->zoom, 1.0f * width() / height(), 0.1f, 100.f);
+    shaderProgram.setUniformValue("projection", projection);
+
+    // camera/view transformation
+    shaderProgram.setUniformValue("view", camera->getViewMatrix());
+
     // render boxes
     glBindVertexArray(VAO);
     for (unsigned int i = 0; i < 10; i++) {
@@ -195,4 +200,52 @@ void CoreFunctionWidget::paintGL(){
     }
 
     shaderProgram.release();
+}
+
+void CoreFunctionWidget::keyPressEvent(QKeyEvent *event)
+{
+    int key = event->key();
+    if (key >= 0 && key < 1024)
+        camera->keys[key] = true;
+}
+
+void CoreFunctionWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    int key = event->key();
+    if (key >= 0 && key < 1024)
+        camera->keys[key] = false;
+}
+
+void CoreFunctionWidget::mousePressEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::LeftButton){
+        m_bLeftPressed = true;
+        m_lastPos = event->pos();
+    }
+}
+
+void CoreFunctionWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+
+    m_bLeftPressed = false;
+}
+
+void CoreFunctionWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_bLeftPressed) {
+        int xpos = event->pos().x();
+        int ypos = event->pos().y();
+
+        int xoffset = xpos - m_lastPos.x();
+        int yoffset = m_lastPos.y() - ypos;
+        m_lastPos = event->pos();
+        camera->processMouseMovement(xoffset, yoffset);
+    }
+}
+
+void CoreFunctionWidget::wheelEvent(QWheelEvent *event)
+{
+    QPoint offset = event->angleDelta();
+    camera->processMouseScroll(offset.y()/20.0f);
 }

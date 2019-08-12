@@ -5,6 +5,9 @@
 QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent),
     vbo(QOpenGLBuffer::VertexBuffer)
 {
+    camera = std::make_unique<Camera>(QVector3D(5.0f, 0.0f, 10.0f));
+    m_bLeftPressed = false;
+
     m_pTimer = new QTimer(this);
     connect(m_pTimer, &QTimer::timeout, this, [=]{
         m_nTimeValue += 1;
@@ -44,10 +47,6 @@ void QtFunctionWidget::initializeGL(){
     if(!success) {
         qDebug() << "shaderProgram link failed!" << shaderProgram.log();
     }
-
-    // configure global opengl state
-    // -----------------------------
-    glEnable(GL_DEPTH_TEST);
 
     //VAO，VBO data
     float vertices[] = {
@@ -140,16 +139,12 @@ void QtFunctionWidget::initializeGL(){
     shaderProgram.bind();   // don't forget to activate/use the shader before setting uniforms!
     shaderProgram.setUniformValue("texture1", 0);
     shaderProgram.setUniformValue("texture2", 1);
-    // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-    QMatrix4x4 view;
-    view.translate(QVector3D(0.0f, 0.0f, -3.0f));
-    shaderProgram.setUniformValue("view", view);
-    QMatrix4x4 projection;
-    projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
-    shaderProgram.setUniformValue("projection", projection);
-    shaderProgram.release();
 
     vbo.release();
+
+    // configure global opengl state
+    // -----------------------------
+    glEnable(GL_DEPTH_TEST);
 }
 
 void QtFunctionWidget::resizeGL(int w, int h){
@@ -173,6 +168,8 @@ void QtFunctionWidget::paintGL(){
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
+    camera->processInput(1.0f);
+
     // bind textures on corresponding texture units
     glActiveTexture(GL_TEXTURE0);
     texture1->bind();
@@ -180,6 +177,13 @@ void QtFunctionWidget::paintGL(){
     texture2->bind();
 
     shaderProgram.bind();
+
+    QMatrix4x4 projection;
+    projection.perspective(camera->zoom, 1.0f * width() / height(), 0.1f, 100.f);
+    shaderProgram.setUniformValue("projection", projection);
+
+    // camera/view transformation
+    shaderProgram.setUniformValue("view", camera->getViewMatrix());
 
     {// render box
         QOpenGLVertexArrayObject::Binder vaoBind(&vao);
@@ -198,4 +202,52 @@ void QtFunctionWidget::paintGL(){
     texture1->release();
     texture2->release();
     shaderProgram.release();
+}
+
+void QtFunctionWidget::keyPressEvent(QKeyEvent *event)
+{
+    int key = event->key();
+    if (key >= 0 && key < 1024)
+        camera->keys[key] = true;
+}
+
+void QtFunctionWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    int key = event->key();
+    if (key >= 0 && key < 1024)
+        camera->keys[key] = false;
+}
+
+void QtFunctionWidget::mousePressEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::LeftButton){
+        m_bLeftPressed = true;
+        m_lastPos = event->pos();
+    }
+}
+
+void QtFunctionWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+
+    m_bLeftPressed = false;
+}
+
+void QtFunctionWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_bLeftPressed) {
+        int xpos = event->pos().x();
+        int ypos = event->pos().y();
+
+        int xoffset = xpos - m_lastPos.x();
+        int yoffset = m_lastPos.y() - ypos;
+        m_lastPos = event->pos();
+        camera->processMouseMovement(xoffset, yoffset);
+    }
+}
+
+void QtFunctionWidget::wheelEvent(QWheelEvent *event)
+{
+    QPoint offset = event->angleDelta();
+    camera->processMouseScroll(offset.y()/20.0f);
 }

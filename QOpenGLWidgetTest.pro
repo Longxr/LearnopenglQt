@@ -27,11 +27,13 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
     CoreFunctionWidget.cpp \
-    QtFunctionWidget.cpp
+    QtFunctionWidget.cpp \
+    Camera.cpp
 
 HEADERS += \
     CoreFunctionWidget.h \
-    QtFunctionWidget.h
+    QtFunctionWidget.h \
+    Camera.h
 
 FORMS +=
 

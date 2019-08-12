@@ -4,8 +4,9 @@
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLFunctions_3_3_Core>
-#include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
+
+#include "Camera.h"
 
 class CoreFunctionWidget : public QOpenGLWidget
                            , protected /*QOpenGLExtraFunctions*/QOpenGLFunctions_3_3_Core
@@ -13,18 +14,32 @@ class CoreFunctionWidget : public QOpenGLWidget
     Q_OBJECT
 public:
     explicit CoreFunctionWidget(QWidget *parent = nullptr);
-    ~CoreFunctionWidget();
+    ~CoreFunctionWidget() Q_DECL_OVERRIDE;
 
 protected:
-    virtual void initializeGL();
-    virtual void resizeGL(int w, int h);
-    virtual void paintGL();
+    void initializeGL()  Q_DECL_OVERRIDE;
+    void resizeGL(int w, int h) Q_DECL_OVERRIDE;
+    void paintGL() Q_DECL_OVERRIDE;
+
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private:
     QOpenGLShaderProgram shaderProgram;
 
     QTimer* m_pTimer = nullptr;
     int     m_nTimeValue = 0;
+
+    uint VBO, VAO, texture1, texture2;
+
+    // camera
+    std::unique_ptr<Camera> camera;
+    bool m_bLeftPressed;
+    QPoint m_lastPos;
 };
 
 #endif // COREFUNCTIONWIDGET_H
