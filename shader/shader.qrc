@@ -6,5 +6,9 @@
         <file>colortriangle.vert</file>
         <file>textures.frag</file>
         <file>textures.vert</file>
+        <file>colors.frag</file>
+        <file>colors.vert</file>
+        <file>lamp.frag</file>
+        <file>lamp.vert</file>
     </qresource>
 </RCC>

@@ -29,11 +29,12 @@ protected:
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QOpenGLShaderProgram shaderProgram;
+    bool createShader();
+
+private:
+    QOpenGLShaderProgram lightingShader, lampShader;
     QOpenGLBuffer vbo;
-    QOpenGLVertexArrayObject vao;
-    QOpenGLTexture *texture1 = nullptr;
-    QOpenGLTexture *texture2 = nullptr;
+    QOpenGLVertexArrayObject cubeVAO, lightVAO;
 
     QTimer* m_pTimer = nullptr;
     int     m_nTimeValue = 0;

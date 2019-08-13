@@ -29,12 +29,15 @@ protected:
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    QOpenGLShaderProgram shaderProgram;
+    bool createShader();
+
+private:
+    QOpenGLShaderProgram lightingShader, lampShader;
 
     QTimer* m_pTimer = nullptr;
     int     m_nTimeValue = 0;
 
-    uint VBO, VAO, texture1, texture2;
+    uint VBO, cubeVAO, lightVAO;
 
     // camera
     std::unique_ptr<Camera> camera;
