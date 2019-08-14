@@ -30,6 +30,7 @@ protected:
 
 private:
     bool createShader();
+    uint loadTexture(const QString& path);
 
 private:
     QOpenGLShaderProgram lightingShader, lampShader;
@@ -38,6 +39,7 @@ private:
     int     m_nTimeValue = 0;
 
     uint VBO, cubeVAO, lightVAO;
+    uint diffuseMap, specularMap;
 
     // camera
     std::unique_ptr<Camera> camera;

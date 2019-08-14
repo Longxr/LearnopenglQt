@@ -26,6 +26,14 @@ QtFunctionWidget::~QtFunctionWidget(){
     cubeVAO.destroy();
     vbo.destroy();
 
+    if (m_pDiffuseMap) {
+        delete m_pDiffuseMap;
+    }
+
+    if (m_pSpecularMap) {
+        delete m_pSpecularMap;
+    }
+
     doneCurrent();
 }
 
@@ -37,47 +45,48 @@ void QtFunctionWidget::initializeGL(){
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
     vbo.create();
@@ -96,12 +105,12 @@ void QtFunctionWidget::initializeGL(){
 //        lightingShader.setAttributeBuffer(attr, GL_FLOAT, sizeof(GLfloat) * 3, 3, sizeof(GLfloat) * 6);
 //        lightingShader.enableAttributeArray(attr);
 
-        // position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
-        // normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
     }
 
     {
@@ -113,10 +122,21 @@ void QtFunctionWidget::initializeGL(){
 //        lightingShader.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 6);
 //        lightingShader.enableAttributeArray(attr);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
     }
 
+    // load textures (we now use a utility function to keep the code more organized)
+    // -----------------------------------------------------------------------------
+    m_pDiffuseMap = loadTexture(":/container2.png");
+    m_pSpecularMap = loadTexture(":/container2_specular.png");
+
+    // shader configuration
+    // --------------------
+    lightingShader.bind();
+    lightingShader.setUniformValue("material.diffuse", 0);
+    lightingShader.setUniformValue("material.specular", 1);
+    lightingShader.release();
 
     vbo.release();
 
@@ -145,21 +165,12 @@ void QtFunctionWidget::paintGL(){
     lightingShader.setUniformValue("viewPos", camera->position);
 
     // light properties
-    QVector3D lightColor;
-    lightColor.setX(sin(m_nTimeValue * /*2.0f*/0.1f));
-    lightColor.setY(sin(m_nTimeValue * /*0.7f*/0.035f));
-    lightColor.setZ(sin(m_nTimeValue * /*1.3f*/0.065f));
-    QVector3D diffuseColor = lightColor   * 0.5f; // decrease the influence
-    QVector3D ambientColor = diffuseColor * 0.2f; // low influence
-    lightingShader.setUniformValue("light.ambient", ambientColor);
-    lightingShader.setUniformValue("light.diffuse", diffuseColor);
-    lightingShader.setUniformValue("light.specular", 1.0f, 1.0f, 1.0f);
+    lightingShader.setUniformValue("light.ambient", QVector3D(0.2f, 0.2f, 0.2f));
+    lightingShader.setUniformValue("light.diffuse", QVector3D(0.5f, 0.5f, 0.5f));
+    lightingShader.setUniformValue("light.specular", QVector3D(1.0f, 1.0f, 1.0f));
 
     // material properties
-    lightingShader.setUniformValue("material.ambient", QVector3D(1.0f, 0.5f, 0.31f));
-    lightingShader.setUniformValue("material.diffuse", QVector3D(1.0f, 0.5f, 0.31f));
-    lightingShader.setUniformValue("material.specular", QVector3D(0.5f, 0.5f, 0.5f)); // specular lighting doesn't have full effect on this object's material
-    lightingShader.setUniformValue("material.shininess", 32.0f);
+    lightingShader.setUniformValue("material.shininess", 64.0f);
 
     // view/projection transformations
     QMatrix4x4 projection;
@@ -171,6 +182,15 @@ void QtFunctionWidget::paintGL(){
     // world transformation
     QMatrix4x4 model;
     lightingShader.setUniformValue("model", model);
+
+    // bind diffuse map
+    glActiveTexture(GL_TEXTURE0);
+    m_pDiffuseMap->bind();
+
+    // bind specular map
+    glActiveTexture(GL_TEXTURE1);
+    m_pSpecularMap->bind();
+
     {// render the cube
         QOpenGLVertexArrayObject::Binder vaoBind(&cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -278,4 +298,20 @@ bool QtFunctionWidget::createShader()
     }
 
     return success;
+}
+
+QOpenGLTexture *QtFunctionWidget::loadTexture(const QString &path)
+{
+    QOpenGLTexture* pTexture = new QOpenGLTexture(QImage(path), QOpenGLTexture::GenerateMipMaps);
+    if(!pTexture->isCreated()){
+        qDebug() << "Failed to load texture";
+    }
+    // set the texture wrapping parameters
+    pTexture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    pTexture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    pTexture->setMinificationFilter(QOpenGLTexture::Linear);   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    pTexture->setMagnificationFilter(QOpenGLTexture::Linear);
+
+    return pTexture;
 }

@@ -30,11 +30,14 @@ protected:
 
 private:
     bool createShader();
+    QOpenGLTexture* loadTexture(const QString& path);
 
 private:
     QOpenGLShaderProgram lightingShader, lampShader;
     QOpenGLBuffer vbo;
     QOpenGLVertexArrayObject cubeVAO, lightVAO;
+    QOpenGLTexture* m_pDiffuseMap = nullptr;
+    QOpenGLTexture* m_pSpecularMap = nullptr;
 
     QTimer* m_pTimer = nullptr;
     int     m_nTimeValue = 0;
