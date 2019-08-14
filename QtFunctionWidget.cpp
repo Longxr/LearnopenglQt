@@ -8,7 +8,7 @@ static QVector3D lightPos(1.2f, 1.0f, 2.0f);
 QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent),
     vbo(QOpenGLBuffer::VertexBuffer)
 {
-    camera = std::make_unique<Camera>(QVector3D(3.0f, 0.0f, 10.0f));
+    camera = std::make_unique<Camera>(QVector3D(0.0f, 0.0f, 3.0f));
     m_bLeftPressed = false;
 
     m_pTimer = new QTimer(this);
@@ -16,7 +16,7 @@ QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent),
         m_nTimeValue += 1;
         update();
     });
-    m_pTimer->start(40);
+    m_pTimer->start(40);//25 fps
 }
 
 QtFunctionWidget::~QtFunctionWidget(){
@@ -34,49 +34,50 @@ void QtFunctionWidget::initializeGL(){
 
     createShader();
 
-    //VAO，VBO data
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    // ------------------------------------------------------------------
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-        -0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-        -0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
     vbo.create();
@@ -86,24 +87,33 @@ void QtFunctionWidget::initializeGL(){
     {
         QOpenGLVertexArrayObject::Binder vaoBind(&cubeVAO);
 
-//        position attribute
+////        position attribute
 //        int attr = -1;
 //        attr = lightingShader.attributeLocation("aPos");
-//        lightingShader.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
+//        lightingShader.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 6);
 //        lightingShader.enableAttributeArray(attr);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+//        attr = lightingShader.attributeLocation("aNormal");
+//        lightingShader.setAttributeBuffer(attr, GL_FLOAT, sizeof(GLfloat) * 3, 3, sizeof(GLfloat) * 6);
+//        lightingShader.enableAttributeArray(attr);
+
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+        // normal attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
     }
 
     {
         QOpenGLVertexArrayObject::Binder vaoBind(&lightVAO);
 
-//        position attribute
+////        position attribute
 //        int attr = -1;
-//        attr = lampShader.attributeLocation("aPos");
-//        lampShader.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 3);
-//        lampShader.enableAttributeArray(attr);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+//        attr = lightingShader.attributeLocation("aPos");
+//        lightingShader.setAttributeBuffer(attr, GL_FLOAT, 0, 3, sizeof(GLfloat) * 6);
+//        lightingShader.enableAttributeArray(attr);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
     }
 
@@ -122,7 +132,7 @@ void QtFunctionWidget::resizeGL(int w, int h){
 void QtFunctionWidget::paintGL(){
     // input
     // -----
-    camera->processInput(1.0f);
+    camera->processInput(0.5f);//speed
 
     // render
     // ------
@@ -133,6 +143,8 @@ void QtFunctionWidget::paintGL(){
     lightingShader.bind();
     lightingShader.setUniformValue("objectColor", QVector3D(1.0f, 0.5f, 0.31f));
     lightingShader.setUniformValue("lightColor",  QVector3D(1.0f, 1.0f, 1.0f));
+    lightingShader.setUniformValue("lightPos", lightPos);
+    lightingShader.setUniformValue("viewPos", camera->position);
 
     // view/projection transformations
     QMatrix4x4 projection;
@@ -216,13 +228,13 @@ void QtFunctionWidget::wheelEvent(QWheelEvent *event)
 
 bool QtFunctionWidget::createShader()
 {
-    bool success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/colors.vert");
+    bool success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/basic_lighting.vert");
     if (!success) {
         qDebug() << "shaderProgram addShaderFromSourceFile failed!" << lightingShader.log();
         return success;
     }
 
-    success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/colors.frag");
+    success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/basic_lighting.frag");
     if (!success) {
         qDebug() << "shaderProgram addShaderFromSourceFile failed!" << lightingShader.log();
         return success;
