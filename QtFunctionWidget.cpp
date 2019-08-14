@@ -141,10 +141,25 @@ void QtFunctionWidget::paintGL(){
 
     // be sure to activate shader when setting uniforms/drawing objects
     lightingShader.bind();
-    lightingShader.setUniformValue("objectColor", QVector3D(1.0f, 0.5f, 0.31f));
-    lightingShader.setUniformValue("lightColor",  QVector3D(1.0f, 1.0f, 1.0f));
-    lightingShader.setUniformValue("lightPos", lightPos);
+    lightingShader.setUniformValue("light.position", lightPos);
     lightingShader.setUniformValue("viewPos", camera->position);
+
+    // light properties
+    QVector3D lightColor;
+    lightColor.setX(sin(m_nTimeValue * /*2.0f*/0.1f));
+    lightColor.setY(sin(m_nTimeValue * /*0.7f*/0.035f));
+    lightColor.setZ(sin(m_nTimeValue * /*1.3f*/0.065f));
+    QVector3D diffuseColor = lightColor   * 0.5f; // decrease the influence
+    QVector3D ambientColor = diffuseColor * 0.2f; // low influence
+    lightingShader.setUniformValue("light.ambient", ambientColor);
+    lightingShader.setUniformValue("light.diffuse", diffuseColor);
+    lightingShader.setUniformValue("light.specular", 1.0f, 1.0f, 1.0f);
+
+    // material properties
+    lightingShader.setUniformValue("material.ambient", QVector3D(1.0f, 0.5f, 0.31f));
+    lightingShader.setUniformValue("material.diffuse", QVector3D(1.0f, 0.5f, 0.31f));
+    lightingShader.setUniformValue("material.specular", QVector3D(0.5f, 0.5f, 0.5f)); // specular lighting doesn't have full effect on this object's material
+    lightingShader.setUniformValue("material.shininess", 32.0f);
 
     // view/projection transformations
     QMatrix4x4 projection;
@@ -228,13 +243,13 @@ void QtFunctionWidget::wheelEvent(QWheelEvent *event)
 
 bool QtFunctionWidget::createShader()
 {
-    bool success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/basic_lighting.vert");
+    bool success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/lighting_maps.vert");
     if (!success) {
         qDebug() << "shaderProgram addShaderFromSourceFile failed!" << lightingShader.log();
         return success;
     }
 
-    success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/basic_lighting.frag");
+    success = lightingShader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/lighting_maps.frag");
     if (!success) {
         qDebug() << "shaderProgram addShaderFromSourceFile failed!" << lightingShader.log();
         return success;

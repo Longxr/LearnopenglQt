@@ -10,5 +10,7 @@
         <file>basic_lighting.vert</file>
         <file>lamp.frag</file>
         <file>lamp.vert</file>
+        <file>lighting_maps.frag</file>
+        <file>lighting_maps.vert</file>
     </qresource>
 </RCC>
