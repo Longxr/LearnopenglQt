@@ -5,11 +5,9 @@
 // lighting
 static QVector3D lightPos(1.2f, 1.0f, 2.0f);
 
-QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent),
-    vbo(QOpenGLBuffer::VertexBuffer)
+QtFunctionWidget::QtFunctionWidget(QWidget *parent) : QOpenGLWidget (parent)
 {
     camera = std::make_unique<Camera>(QVector3D(0.0f, 0.0f, 3.0f));
-    m_bLeftPressed = false;
 
     m_pTimer = new QTimer(this);
     connect(m_pTimer, &QTimer::timeout, this, [=]{
@@ -26,13 +24,8 @@ QtFunctionWidget::~QtFunctionWidget(){
     cubeVAO.destroy();
     vbo.destroy();
 
-    if (m_pDiffuseMap) {
-        delete m_pDiffuseMap;
-    }
-
-    if (m_pSpecularMap) {
-        delete m_pSpecularMap;
-    }
+    m_pDiffuseMap.reset();
+    m_pSpecularMap.reset();
 
     doneCurrent();
 }
@@ -128,8 +121,17 @@ void QtFunctionWidget::initializeGL(){
 
     // load textures (we now use a utility function to keep the code more organized)
     // -----------------------------------------------------------------------------
-    m_pDiffuseMap = loadTexture(":/container2.png");
-    m_pSpecularMap = loadTexture(":/container2_specular.png");
+    m_pDiffuseMap = std::make_unique<QOpenGLTexture>(QImage(":/container2.png"), QOpenGLTexture::GenerateMipMaps);
+    m_pDiffuseMap->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
+    m_pDiffuseMap->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);
+    m_pDiffuseMap->setMinificationFilter(QOpenGLTexture::Linear);
+    m_pDiffuseMap->setMagnificationFilter(QOpenGLTexture::Linear);
+
+    m_pSpecularMap = std::make_unique<QOpenGLTexture>(QImage(":/container2_specular.png"), QOpenGLTexture::GenerateMipMaps);
+    m_pSpecularMap->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);
+    m_pSpecularMap->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);
+    m_pSpecularMap->setMinificationFilter(QOpenGLTexture::Linear);
+    m_pSpecularMap->setMagnificationFilter(QOpenGLTexture::Linear);
 
     // shader configuration
     // --------------------
@@ -300,18 +302,3 @@ bool QtFunctionWidget::createShader()
     return success;
 }
 
-QOpenGLTexture *QtFunctionWidget::loadTexture(const QString &path)
-{
-    QOpenGLTexture* pTexture = new QOpenGLTexture(QImage(path), QOpenGLTexture::GenerateMipMaps);
-    if(!pTexture->isCreated()){
-        qDebug() << "Failed to load texture";
-    }
-    // set the texture wrapping parameters
-    pTexture->setWrapMode(QOpenGLTexture::DirectionS, QOpenGLTexture::Repeat);  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    pTexture->setWrapMode(QOpenGLTexture::DirectionT, QOpenGLTexture::Repeat);  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    pTexture->setMinificationFilter(QOpenGLTexture::Linear);   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    pTexture->setMagnificationFilter(QOpenGLTexture::Linear);
-
-    return pTexture;
-}

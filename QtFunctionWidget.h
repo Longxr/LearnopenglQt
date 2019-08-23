@@ -30,21 +30,22 @@ protected:
 
 private:
     bool createShader();
-    QOpenGLTexture* loadTexture(const QString& path);
 
 private:
     QOpenGLShaderProgram lightingShader, lampShader;
-    QOpenGLBuffer vbo;
+    QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};
     QOpenGLVertexArrayObject cubeVAO, lightVAO;
-    QOpenGLTexture* m_pDiffuseMap = nullptr;
-    QOpenGLTexture* m_pSpecularMap = nullptr;
+    std::unique_ptr<QOpenGLTexture> m_pDiffuseMap;
+    std::unique_ptr<QOpenGLTexture> m_pSpecularMap;
 
-    QTimer* m_pTimer = nullptr;
-    int     m_nTimeValue = 0;
+    std::unique_ptr<QOpenGLShaderProgram> m_program;
+
+    QTimer* m_pTimer{nullptr};
+    int m_nTimeValue{0};
 
     // camera
     std::unique_ptr<Camera> camera;
-    bool m_bLeftPressed;
+    bool m_bLeftPressed{false};
     QPoint m_lastPos;
 };
 
