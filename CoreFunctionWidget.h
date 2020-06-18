@@ -5,7 +5,7 @@
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShaderProgram>
-
+#include <memory>
 #include "Camera.h"
 
 class CoreFunctionWidget : public QOpenGLWidget

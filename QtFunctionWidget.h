@@ -7,7 +7,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLTexture>
-
+#include <memory>
 #include "Camera.h"
 
 class QtFunctionWidget : public QOpenGLWidget, protected QOpenGLFunctions
